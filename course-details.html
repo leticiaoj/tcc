@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Cyber Chase - {{ curso.titulo }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <style>
+        /* Estilo para o título de destaque no topo */
+        .page-header-title {
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(90deg, #000, #1a1a1a);
+            padding: 40px 20px;
+            margin-bottom: -20px;
+            font-family: 'Racing Sans One', cursive;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 3px solid #2291F6;
+        }
+
+        .course-details-container { max-width: 900px; margin: 40px auto; padding: 40px; background: #fff; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .course-content { line-height: 1.8; color: #000; white-space: pre-wrap; margin-bottom: 30px; }
+        
+        /* SEÇÃO DE TESTE - Pergunta em PRETO */
+        .test-section { background: #f8f9fa; border: 2px solid #2291F6; padding: 25px; border-radius: 10px; margin-top: 30px; color: #000; }
+        .test-section h3 { color: #000; margin-bottom: 10px; }
+        .test-section p { color: #000; font-size: 1.1rem; }
+        
+        textarea { width: 100%; height: 120px; margin: 15px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; color: #000; }
+        
+        .btn-action { padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-verify { background: #333; color: #fff; }
+        .btn-cert { background: #2291F6; color: #fff; display: none; margin-top: 20px; width: 100%; font-size: 1.2rem; }
+
+        #areaCertificado { display: none; margin-top: 50px; text-align: center; }
+        .cert-box { border: 15px double #000; padding: 50px; background: #fff; max-width: 800px; margin: 0 auto; color: #000; position: relative; }
+        .cert-user { font-size: 2.5rem; color: #007bff; font-weight: bold; margin: 20px 0; text-decoration: underline; }
+
+        @media print {
+            .page-header-title, .navbar, .test-section, .btn-action, #btnGerarCertificado, footer { display: none !important; }
+            body * { visibility: hidden; }
+            #areaCertificado, #areaCertificado * { visibility: visible; }
+            #areaCertificado { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+            .btn-print { display: none !important; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}"><img src="/assets/logo/svg/Logo.svg" id="Logo"></a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('page_courses') }}">Cursos</a></li>
+            <li><a href="{{ url_for('logout') }}" style="color: #ff4d4d;">Sair</a></li>
+        </ul>
+    </nav>
+
+    <header class="page-header-title">
+        <h1>Curso: {{ curso.titulo }}</h1>
+    </header>
+
+    <main class="course-details-container">
+        <div class="course-content">{{ curso.conteudo | safe }}</div>
+
+        {% if curso.link %}
+            <div style="margin-top: 20px;">
+                <a href="{{ curso.link }}" target="_blank" class="btn-action" style="background: #2291F6; color: white; text-decoration: none;">Assistir Vídeo/Aula Externa</a>
+            </div>
+        {% endif %}
+
+        <div class="test-section" id="sessaoTeste">
+            <h3>📝 Validação de Conhecimento</h3>
+            <p><strong>Pergunta:</strong> {{ curso.pergunta_teste or "Explique resumidamente o que você aprendeu neste módulo." }}</p>
+            <textarea id="resposta_aluno" placeholder="Escreva sua resposta aqui para liberar o certificado..."></textarea>
+            <button class="btn-action btn-verify" onclick="validarIA()">Enviar para Avaliação da IA</button>
+            <p id="feedback" style="margin-top: 15px; font-weight: bold;"></p>
+        </div>
+
+        <button id="btnGerarCertificado" class="btn-action btn-cert" onclick="liberarCertificado()">🎓 Gerar Meu Certificado</button>
+
+        <section id="areaCertificado">
+            <div class="cert-box">
+                <img src="/assets/logo/svg/Logo.svg" style="width: 150px; margin-bottom: 20px;">
+                <h1 style="font-size: 3.5rem; font-family: serif;">CERTIFICADO</h1>
+                <p>Certificamos que</p>
+                <div class="cert-user">{{ nome_usuario }}</div>
+                <p>concluiu com êxito o treinamento de</p>
+                <h2 style="font-size: 2rem; margin: 15px 0;">{{ curso.titulo }}</h2>
+                <p>Emitido por <strong>Cyber Chase</strong> em {{ data_hoje }}.</p>
+                <div style="margin-top: 50px; border-top: 2px solid #000; display: inline-block; padding: 10px 40px;">Assinatura Digital Cybot</div>
+                <br><br>
+                <button class="btn-print" onclick="window.print()" style="padding: 10px 20px; background: #000; color: #fff; cursor: pointer; border-radius: 5px;">🖨️ Salvar como PDF</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function validarIA() {
+            const resp = document.getElementById('resposta_aluno').value;
+            const feedback = document.getElementById('feedback');
+            
+            if(resp.length < 10) {
+                feedback.innerText = "⚠️ Por favor, escreva uma resposta mais detalhada.";
+                feedback.style.color = "orange";
+                return;
+            }
+
+            fetch('/validar_teste/{{ curso.id }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({resposta: resp})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.status === "sucesso") {
+                    feedback.innerText = "✅ Resposta aprovada! Sua compreensão foi validada.";
+                    feedback.style.color = "green";
+                    document.getElementById('btnGerarCertificado').style.display = "block";
+                    document.getElementById('sessaoTeste').style.opacity = "0.6";
+                } else {
+                    feedback.innerText = "❌ " + data.message;
+                    feedback.style.color = "red";
+                }
+            });
+        }
+
+        function liberarCertificado() {
+            document.getElementById('areaCertificado').style.display = "block";
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

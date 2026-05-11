@@ -4,6 +4,7 @@ import os
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from datetime import datetime
 
 # --- CONFIGURAÇÃO INICIAL ---
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,15 +28,16 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(100), nullable=False)
-    descricao = db.Column(db.String(255), nullable=False)
+    descricao = db.Column(db.Text, nullable=False)
     conteudo = db.Column(db.Text, nullable=True)
-    link = db.Column(db.String(100), nullable=True)
+    link = db.Column(db.String(900), nullable=True)
+    pergunta_teste = db.Column(db.Text, nullable=True)   # Adicionado para a IA
+    resposta_correta = db.Column(db.Text, nullable=True) # Adicionado para a IA
 
 with app.app_context():
     db.create_all()
 
-# --- INTELIGÊNCIA DO CHATBOT (MACHINE LEARNING) ---
-# Base de conhecimento: Pergunta -> Resposta
+# --- INTELIGÊNCIA DO CHATBOT ---
 conhecimento = {
     "O que é a Cyber Chase?": "A Cyber Chase é uma organização focada em educação cibernética gratuita para ajudar você a construir seu escudo digital.",
     "Quais os benefícios da plataforma?": "Além de aprender a se proteger, você turbina seu currículo com nossos certificados de conclusão!",
@@ -48,8 +50,6 @@ conhecimento = {
 
 perguntas_treino = list(conhecimento.keys())
 respostas_treino = list(conhecimento.values())
-
-# Inicializa o vetorizador para transformar texto em representação numérica (TF-IDF)
 vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(perguntas_treino)
 
@@ -104,31 +104,19 @@ def index():
         return redirect(url_for('login_page'))
     return render_template('index.html')
 
-# ROTA DO CHATBOT COM MACHINE LEARNING
 @app.route('/ask', methods=['POST'])
 def ask_bot():
     if 'usuario_logado' not in session:
         return jsonify({"response": "Por favor, faça login primeiro."}), 401
-
     data = request.json
     user_message = data.get("message", "")
-
     if not user_message:
         return jsonify({"response": "Diga algo para eu te ajudar!"})
-
-    # Transforma o input do usuário e calcula similaridade de cosseno
     query_vec = vectorizer.transform([user_message])
     similaridade = cosine_similarity(query_vec, tfidf_matrix)
-    
     indice_melhor = np.argmax(similaridade)
     score_confianca = similaridade[0][indice_melhor]
-
-    # Define um limite de confiança (0.3 é um bom começo)
-    if score_confianca > 0.3:
-        resposta = respostas_treino[indice_melhor]
-    else:
-        resposta = "Ainda estou aprendendo sobre isso. Pode tentar perguntar sobre nossos cursos ou sobre a Cyber Chase?"
-
+    resposta = respostas_treino[indice_melhor] if score_confianca > 0.3 else "Ainda estou aprendendo sobre isso."
     return jsonify({"response": resposta})
 
 @app.route('/courses')
@@ -146,26 +134,52 @@ def visualizar_curso(id):
     if not curso:
         flash("Curso não encontrado.")
         return redirect(url_for('page_courses'))
-    return render_template('course-details.html', curso=curso)
+    
+    nome_usuario = session.get('usuario_logado')
+    data_atual = datetime.now().strftime('%d/%m/%Y')
+    
+    return render_template('course-details.html', curso=curso, nome_usuario=nome_usuario, data_hoje=data_atual)
+
+# --- ROTA DE VALIDAÇÃO DE TESTE (IA) ---
+@app.route('/validar_teste/<int:id>', methods=['POST'])
+def validar_teste(id):
+    curso = db.session.get(Curso, id)
+    dados = request.json
+    resposta_usuario = dados.get("resposta", "").strip()
+
+    if not curso or not curso.resposta_correta:
+        return jsonify({"status": "sucesso"}) # Se não houver teste cadastrado, libera
+
+    # Inteligência Artificial para comparar resposta do aluno com a do banco
+    textos = [curso.resposta_correta, resposta_usuario]
+    vec_ia = TfidfVectorizer()
+    try:
+        tfidf = vec_ia.fit_transform(textos)
+        similaridade = cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0]
+    except:
+        similaridade = 0
+
+    # Se a similaridade for maior que 35%, aprovamos
+    if similaridade > 0.35:
+        return jsonify({"status": "sucesso"})
+    else:
+        return jsonify({"status": "erro", "message": "Sua resposta não foi profunda o suficiente ou está incorreta. Tente explicar melhor."})
 
 @app.route('/about')
 def page_about():
-    if 'usuario_logado' not in session:
-        return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
     return render_template('about.html')
 
 @app.route('/contact')
 def page_contact():
-    if 'usuario_logado' not in session:
-        return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
     return render_template('contact.html')
 
 # --- CRUD ADMIN ---
 
 @app.route('/admin/cursos')
 def listar_cursos():
-    if 'usuario_logado' not in session:
-        return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
     cursos = Curso.query.all()
     return render_template('admin-courses.html', cursos=cursos)
 
@@ -176,7 +190,9 @@ def criar_curso():
         titulo=request.form.get('titulo'),
         descricao=request.form.get('descricao'),
         conteudo=request.form.get('conteudo'),
-        link=request.form.get('link') or None
+        link=request.form.get('link') or None,
+        pergunta_teste=request.form.get('pergunta_teste'), # Novo
+        resposta_correta=request.form.get('resposta_correta') # Novo
     )
     db.session.add(novo)
     db.session.commit()
@@ -191,6 +207,8 @@ def editar_curso(id):
         curso.descricao = request.form.get('descricao')
         curso.conteudo = request.form.get('conteudo')
         curso.link = request.form.get('link')
+        curso.pergunta_teste = request.form.get('pergunta_teste') # Novo
+        curso.resposta_correta = request.form.get('resposta_correta') # Novo
         db.session.commit()
     return redirect(url_for('listar_cursos'))
 
