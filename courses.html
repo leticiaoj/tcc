@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <title>Cyber Chase - Cursos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Simplificando os links para seguir o padrão que funcionou no admin -->
+    <link rel="icon" href="/assets/logo/png/Favicon.png">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/courses.css">
+    <link rel="stylesheet" href="/css/footer.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
+    <script defer src="js/courses.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="/home"> <img src="/assets/logo/svg/Logo.svg" id="Logo"></a>
+        <div class="mobile-menu">
+            <div class="line1"></div>
+            <div class="line1"></div>
+            <div class="line1"></div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-links"><a href="/about">Sobre Nós</a></li>
+            <li class="nav-links"><a href="/courses">Cursos</a></li>
+            <li class="nav-links"><a href="/contact">Contato</a></li>
+        </ul>
+    </nav>
+
+    <div class="content-wrapper">
+
+        <main>
+            <h1 class="page-title">Nossos Cursos</h1>
+
+            <div class="search-bar">
+                <input id="searchbar" type="text" placeholder="Pesquisar Curso..." onkeyup="search()">
+                <button type="submit">
+                    <img src="/assets/icon/svg/magnifier1.svg" alt="Ícone de Busca" class="search-img">
+                </button>
+            </div>
+
+            <ul class="course-list">
+                {% for curso in cursos %}
+                <li class="course-item">
+                    <h2 class="course-title">{{ curso.titulo }}</h2> 
+                    <p class="course-description">{{ curso.descricao }}</p>
+                    
+                    <!-- Link estilizado como botão -->
+                    <a href="{{ url_for('visualizar_curso', id=curso.id) }}" class="start-button" style="text-decoration: none; display: inline-block; text-align: center;">
+                        Iniciar Curso
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>&#169; 2026 Cyber Chase. Todos os Direitos Reservados.</p>
+                <div class="github-logo">
+                    <a href="https://github.com/orgs/Cyber-Chase/repositories" target="_blank">
+                        <img src="/assets/icon/svg/github_white.svg" alt="GitHub">
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="js/courses.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Cyber Chase - Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/assets/logo/png/Favicon.png">
+    
+    <!-- Chamada dos arquivos CSS -->
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/footer.css">
+
+    <!-- Importação de Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Racing+Sans+One&family=Geologica:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="content-wrapper">
+        <main id="form_fundo">
+            <!-- Sistema de Mensagens Flash do Flask -->
+            {% set mensagem = get_flashed_messages() %}
+            {% if mensagem %}
+                <div class="flash_alerta">{{mensagem[0]}}</div>
+            {% endif %}
+
+            <h1 class="welcome-title">Bem-vindo à Cyber Chase!</h1>
+            <h2 id="slogan">Faça o login para seu ambiente cibernético:</h2>
+            
+            <div id="form_frente">
+                <form action="/login" id="login" method="post">
+                    <label for="nome">e-mail</label>
+                    <input type="email" name="nome" id="nome" required placeholder="digite seu e-mail">
+                    
+                    <label for="senha">senha</label>
+                    <input type="password" name="senha" id="senha" required placeholder="digite sua senha">
+                    
+                    <button type="submit" id="btn_login" class="courses-button">entrar</button>
+                </form>
+                
+                <p style="color: white; text-align: center; margin-top: 20px; font-family: 'Geologica', sans-serif; font-size: 0.9em;">
+                    Não tem uma conta? 
+                    <a href="#" onclick="abrirCadastro()" style="color: #2291F6; text-decoration: none; font-weight: bold; cursor: pointer;">Cadastre-se aqui</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE CADASTRO -->
+    <div id="modalCadastro" class="modal">
+        <div class="modal-content">
+            <button onclick="fecharCadastro()" class="close-btn">&times;</button>
+            <h2 style="color: white; font-family: 'Racing Sans One', cursive; text-align: center; margin-bottom: 20px;">Criar Conta</h2>
+            
+            <form action="/registrar" method="POST" id="form_registrar">
+                <label>nome completo</label>
+                <input type="text" name="nome_cadastro" required placeholder="seu nome">
+                
+                <label>e-mail</label>
+                <input type="email" name="email_cadastro" required placeholder="exemplo@email.com">
+                
+                <label>senha</label>
+                <input type="password" name="senha_cadastro" required placeholder="sua senha">
+                
+                <button type="submit" class="courses-button">finalizar cadastro</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts de Interatividade -->
+    <script>
+        function abrirCadastro() {
+            document.getElementById('modalCadastro').style.display = 'flex';
+        }
+        function fecharCadastro() {
+            document.getElementById('modalCadastro').style.display = 'none';
+        }
+        
+        // Fecha a modal ao clicar fora dela
+        window.onclick = function(event) {
+            let modal = document.getElementById('modalCadastro');
+            if (event.target == modal) {
+                fecharCadastro();
+            }
+        }
+    </script>
+</body>
+</html>

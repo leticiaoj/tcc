@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Cyber Chase - Gerenciar Cursos</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/courses.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <script defer src="js/navbar.js"></script>
+    <style>
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-content { background-color: #1a1a1a; padding: 30px; border: 2px solid #2291F6; width: 90%; max-width: 600px; color: white; border-radius: 15px; position: relative; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 10px 0; background: #0a0a0a; border: 1px solid #333; color: white; border-radius: 8px; }
+        .btn-salvar { background-color: #2291F6; color: white; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 8px; width: 100%; margin-top: 10px; }
+        .btn-edit { background-color: #ffc107; color: #000; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; font-weight: bold; border: none; cursor: pointer; }
+        .delete-btn { background-color: #ff4d4d; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 14px; }
+        .admin-actions { display: flex; gap: 10px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/home"> <img src="/assets/logo/svg/Logo.svg" id="Logo"></a>
+        <ul class="nav-links">
+            <li><a href="/home">Início</a></li>
+            <li><a href="/logout" style="color: #ff4d4d;">Sair</a></li>
+        </ul>
+    </nav>
+
+    <main style="padding: 20px;">
+        <h1 class="page-title">Painel Administrativo</h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button class="start-button" onclick="document.getElementById('modalNovoCurso').style.display='flex'">+ Novo Curso</button>
+        </div>
+
+        <ul class="course-list">
+            {% for curso in cursos %}
+            <li class="course-item">
+                <h2 class="course-title">{{ curso.titulo }}</h2>
+                <p>{{ curso.descricao }}</p>
+                <div class="admin-actions">
+                    <!-- Botão Editar que chama a função JS passando os dados do curso -->
+                    <button class="btn-edit" onclick="abrirModalEdicao('{{ curso.id }}', '{{ curso.titulo }}', '{{ curso.descricao }}', '{{ curso.conteudo }}', '{{ curso.link }}')">Editar</button>
+                    <a href="/admin/cursos/deletar/{{ curso.id }}" class="delete-btn" onclick="return confirm('Excluir?')">Remover</a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- MODAL NOVO CURSO (Mesma de antes) -->
+        <div id="modalNovoCurso" class="modal">
+            <div class="modal-content">
+                <button onclick="this.parentElement.parentElement.style.display='none'" style="float:right; background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+                <h2>Cadastrar Curso</h2>
+                <form action="/admin/cursos/novo" method="POST">
+                    <input type="text" name="titulo" placeholder="Título" required>
+                    <input type="text" name="descricao" placeholder="Descrição" required>
+                    <textarea name="conteudo" rows="4" placeholder="Conteúdo"></textarea>
+                    <input type="text" name="link" placeholder="Link">
+                    <button type="submit" class="btn-salvar">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL EDITAR CURSO -->
+        <div id="modalEditarCurso" class="modal">
+            <div class="modal-content">
+                <button onclick="this.parentElement.parentElement.style.display='none'" style="float:right; background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+                <h2>Editar Curso</h2>
+                <form id="formEditar" method="POST">
+                    <input type="text" name="titulo" id="edit_titulo" required>
+                    <input type="text" name="descricao" id="edit_descricao" required>
+                    <textarea name="conteudo" id="edit_conteudo" rows="4"></textarea>
+                    <input type="text" name="link" id="edit_link">
+                    <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function abrirModalEdicao(id, titulo, descricao, conteudo, link) {
+            // Define o destino do formulário com o ID correto
+            document.getElementById('formEditar').action = "/admin/cursos/editar/" + id;
+            
+            // Preenche os campos com os dados atuais
+            document.getElementById('edit_titulo').value = titulo;
+            document.getElementById('edit_descricao').value = descricao;
+            document.getElementById('edit_conteudo').value = conteudo;
+            document.getElementById('edit_link').value = link;
+            
+            // Abre a modal
+            document.getElementById('modalEditarCurso').style.display = 'flex';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

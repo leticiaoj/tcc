@@ -1,0 +1,235 @@
+body {
+    font-family: 'Geologica', sans-serif;
+    background-color: #0a0a0a;
+    color: #ffffff;
+}
+
+main {
+    margin: 0 12vw 8vh;
+}
+
+.course-title {
+    color: #2291F6;
+    font-size: 3em;
+    font-family: "Racing Sans One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    text-align: center;
+
+    margin: 1em 0 1em 0;
+
+    animation: slideIn 1s forwards ease;
+}
+
+#course-description {
+    font-size: larger;
+    text-align: center;
+
+    margin-top: 1em;
+}
+
+.course-subtitle {
+    color: #2291F6;
+    font-size: 150%;
+    font-weight: bold;
+
+    margin: 8vh 2vh 2vh;
+}
+
+.course-topic {
+    font-size: larger;
+    font-weight: bold;
+
+    margin-top: 3vh;
+}
+
+p {
+    margin-top: 1em;
+}
+
+ul li {
+    display: list-item;
+    list-style-type: disc;
+
+    margin-top: 1vh;
+}
+
+@keyframes slideIn {
+    from {
+        margin-top: 50vh;
+        opacity: 0;
+    }
+    to {
+        margin-top: 1em;
+        opacity: 1;
+    }
+}
+
+.certificate-button {
+    width: 20%;
+    margin-top: 2vh;
+    background-color: #2291F6;
+    color: #fff; 
+    border: none;
+    border-radius: 2vh;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-family: 'Geologica', sans-serif;
+}
+
+.certificate-button:hover {
+    background-color: #0056b3; 
+}
+
+#certificate-button {
+    width: 20%;
+    margin-top: 2vh;
+    background-color: #2291F6;
+    color: #fff; 
+    border: none;
+    border-radius: 2vh;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-family: 'Geologica', sans-serif;
+}
+
+#certificate-button:hover {
+    background-color: #0056b3; 
+}
+
+.congratulations-heading {
+    color: #2291F6;
+    text-align: center;
+    font-family: 'Geologica', sans-serif;
+    font-size: 175%;
+    font-weight: bolder;
+
+    margin-top: 10vh;
+}
+
+.certificate-form {
+    text-align: center;
+    font-family: 'Geologica', sans-serif;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 10px;
+    font-family: 'Geologica', sans-serif;
+}
+
+.name-input {
+    width: 50%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: 'Geologica', sans-serif;
+}
+
+.certificate-container {
+    text-align: center;
+}
+
+
+@media only screen and (min-width: 600px) {
+    .name-input {
+        width: 300px;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .name-input {
+        width: 80%;
+        max-width: 300px;
+    }
+
+    .certificate-button {
+        width: 50%;
+    }
+}
+
+
+
+
+.test-button {
+    width: 20%;
+    margin-top: 2vh;
+    background-color: #2291F6; 
+    color: #fff; 
+    border: none;
+    border-radius: 2vh;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-family: 'Geologica', sans-serif;
+}
+
+.test-button:hover {
+    background-color: #0056b3; 
+}
+
+.test-heading {
+    text-align: center;
+    font-family: 'Geologica', sans-serif;
+}
+
+.test-form {
+    text-align: center;
+    font-family: 'Geologica', sans-serif;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 10px;
+    font-family: 'Geologica', sans-serif;
+}
+
+.email-input {
+    width: 50%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: 'Geologica', sans-serif;
+}
+
+.certificate-container {
+    text-align: center;
+}
+
+
+@media only screen and (min-width: 600px) {
+    .email-input {
+        width: 300px;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .email-input {
+        width: 80%;
+        max-width: 300px;
+    }
+
+    .test-button {
+        width: 50%;
+    }
+}

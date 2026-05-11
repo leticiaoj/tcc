@@ -1,0 +1,245 @@
+/* Body */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Geologica', sans-serif;
+    background-color: #0a0a0a;
+    color: #ffffff
+}
+
+.navbar {
+    background-color: #1f1f1f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 11vh;
+}
+
+#Logo {
+    height: 15vh;
+    margin-right: 3vh;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    justify-content: flex-start;
+    margin-right: auto;
+}
+
+.nav-links li {
+    letter-spacing: 0.3vh;
+    margin-right: 5vh;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    color: #fff;
+    transition: color 0.3s;
+}
+
+.nav-links li a:hover {
+    color: #2291F6;
+}
+
+
+.mobile-menu div {
+    width: 32px;
+    height: 2px;
+    background: #2291F6;
+    margin: 8px;
+    transition: 0.3s;
+}
+
+.mobile-menu {
+    cursor: pointer;
+    display: none;
+}
+
+@media (max-width: 999px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .nav-links {
+        position: absolute;
+        top: 8vh;
+        right: 0;
+        width: 50vw;
+        height: 92vh;
+        background: rgba(0, 0, 0, 0.5);
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in;
+    }
+
+    .nav-links li {
+        margin-left: 0;
+        opacity: 0;
+    }
+
+    .mobile-menu {
+        display: block;
+    }
+
+    .nav-links.active {
+        transform: translateX(0);
+    }
+}
+
+@keyframes navLinkFade{
+    from{
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.mobile-menu.active .line1{
+    transform: rotate(45deg) translate(-5px, -7px);
+
+}
+
+.mobile-menu.active .line2{
+    opacity: 0;
+}
+
+.mobile-menu.active .line3{
+    transform: rotate(45deg) translate(-5px, -7px);
+}
+.main {
+    flex: 1;
+}
+
+.page-title {
+    color: #2291F6;
+    text-align: center;
+    font-size: 3em;
+    margin: 1em 0 1em 0;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    font-family: "Racing Sans One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    animation: slideIn 1s forwards ease; 
+}
+
+@keyframes slideIn {
+    from {
+        margin-top: 50vh;
+        opacity: 0;
+    }
+    to {
+        margin-top: 1em;
+        opacity: 1;
+    }
+}
+
+.course-list {
+    list-style-type: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2vh;
+}
+
+.course-item {
+    background-color: #2291F6;
+    border-radius: 2vh;
+    padding: 5vh;
+    margin: 5vh 5vh;
+    transition: transform 0.3s ease;
+}
+
+.course-item:hover {
+    transform: scale(1.1);
+}
+
+@media screen and (max-width: 768px) {
+    .course-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+.course-title {
+    color: #f2f2f2;
+    margin-bottom: 2vh;
+    font-size: 25px;
+}
+
+.course-description {
+    color: #222222;
+}
+
+.start-button {
+    display: block;
+    width: 100%;
+    margin-top: 2vh;
+    padding: 2vh 2vh;
+    background-color: #222222; 
+    color: #fff; 
+    border: none;
+    border-radius: 2vh;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Geologica', sans-serif;
+}
+
+.start-button:hover {
+    background-color: #0056b3; 
+}
+
+.search-bar {
+    display: flex;
+    margin: 0 auto 20px;
+    width: 95%;
+    font-family: 'Geologica', sans-serif;
+}
+
+.search-bar input[type="text"] {
+    padding: 10px;
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 2vh 0 0 2vh;
+    font-family: 'Geologica', sans-serif;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    background-color: #2291F6;
+    color: white;
+    border: none;
+    border-radius: 0 2vh 2vh 0;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #0056b3;
+}
+
+
+.search-img {
+    width: 3vh;
+    height: 3vh;
+}
+
+@media only screen and (min-width: 600px) {
+    .search-bar {
+        width: 95%;
+        max-width: 95%
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .search-bar {
+        width: 90%;
+        max-width: 85%;
+    }
+}
+

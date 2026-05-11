@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <title>Cyber Chase</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/logo/png/Favicon.png">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap"
+        rel="stylesheet">
+
+        <script defer src="js/navbar.js"></script>
+</head>
+
+
+
+<body>
+
+    <nav class="navbar">
+        <a href="/home"> <img src="assets/logo/svg/Logo.svg" id="Logo"></a>
+        <div class="mobile-menu">
+            <div class="line1"></div>
+            <div class="line1"></div>
+            <div class="line1"></div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-links"><a href="/about">Sobre Nós</a></li>
+            <li class="nav-links"><a href="/courses">Cursos</a></li>
+            <li class="nav-links"><a href="/contact">Contato</a></li>
+        </ul>
+    </nav>
+
+    <div class="content-wrapper">
+
+        <main>
+            <h1 class="welcome-title">Bem-vindo à Cyber Chase!</h1> <br>
+            <h2 id="slogan">Aqui você construirá seu escudo cibernético, bit a bit!</h2>
+            <h3 class="home-description">Com nossa trilha de cursos e testes, você se tornará capaz de derrotar 
+                os perigos cibernéticos.</h3>
+            <a class="courses-button-a" href="/courses"><button class="courses-button">Nossos Cursos</button></a>
+            <div id="cyc-icon1"> <img src="assets/icon/svg/cyc-icon1.svg"> </div>
+        </main>
+
+        <div id="chatbot-container" class="chatbot-container">
+            <div class="chatbot-header">
+                <img src="assets/icon/svg/shy-bot.svg" class="bot-avatar" alt="Avatar do Bot">
+                <span class="bot-name">Cybot</span>
+            </div>
+            <div class="chatbot-body">
+                <div class="chatbot-body" id="chatbot-body">
+                    <div class="bubble bot-bubble">Bem-vindo, Cyber Chaser!</div>
+                    <div class="bubble bot-bubble">Eu sou o Cybot, seu assistente virtual. Como posso ajudar?</div>
+                </div>
+            </div>
+            <div class="chatbot-footer">
+                <input type="text" class="user-input" placeholder="Digite sua mensagem...">
+                <button class="send-button" onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+
+        <script src="js/chatbot.js"></script>
+
+        <footer>
+            <div class="footer-content">
+                <p>&#169; 2026 Cyber Chase. Todos os Direitos Reservados.</p>
+                <div class="github-logo">
+                    <a href="https://github.com/orgs/Cyber-Chase/repositories" target="_blank">
+                        <img src="assets/icon/svg/github_white.svg" alt="GitHub">
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+
+</html>
