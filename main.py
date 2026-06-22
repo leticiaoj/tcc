@@ -6,17 +6,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 
-# --- CONFIGURAÇÃO INICIAL ---
+#configuracao inicial
 base_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=base_dir, static_folder=base_dir, static_url_path='')
 app.secret_key = "cyber_chase_secret_key"
 
-# --- BANCO DE DADOS (MYSQL) ---
+#banco de dados em mysql
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@127.0.0.1:3306/cyber_chase'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- MODELOS ---
+#models bd
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
@@ -31,8 +31,8 @@ class Curso(db.Model):
     descricao = db.Column(db.Text, nullable=False)
     conteudo = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(900), nullable=True)
-    pergunta_teste = db.Column(db.Text, nullable=True)   # Adicionado para a IA
-    resposta_correta = db.Column(db.Text, nullable=True) # Adicionado para a IA
+    pergunta_teste = db.Column(db.Text, nullable=True)   
+    resposta_correta = db.Column(db.Text, nullable=True) 
 
 with app.app_context():
     db.create_all()
@@ -45,7 +45,19 @@ conhecimento = {
     "Quem é o Cybot?": "Eu sou o Cybot, seu assistente virtual e guardião da Cyber Chase!",
     "Como posso me proteger de ataques?": "Recomendamos o uso de senhas fortes, autenticação em dois fatores (2FA) e muita atenção a links suspeitos.",
     "A plataforma emite certificado?": "Sim! Ao concluir nossos cursos e passar nos testes, você recebe um certificado da Cyber Chase.",
-    "Como entrar em contato?": "Você pode acessar nossa página de Contato no menu superior para falar com o time."
+    "Como entrar em contato?": "Você pode acessar nossa página de Contato no menu superior para falar com o time.",
+    "Cai em um golpe, o que eu faço?": "Troque todas as senhas imediatamente, se necessário, registre um boletim de ocorrência e fique atento a atividades suspeitas em suas contas.",
+    "O que é Phishing?": "Phishing é um tipo de ataque onde o criminoso tenta enganar a vítima para obter informações pessoais, como senhas e dados bancários, geralmente por meio de e-mails ou mensagens falsas.",
+    "O que é Ransomware?": "Ransomware é um tipo de malware que sequestra os arquivos da vítima, criptografando-os e exigindo um resgate para liberá-los.",
+    "O que é Engenharia Social?": "Engenharia Social é uma técnica de manipulação psicológica usada por criminosos para enganar pessoas e obter informações confidenciais ou acesso a sistemas.",
+    "Como criar uma senha forte?": "Use uma combinação de letras maiúsculas, minúsculas, números e símbolos. Evite usar informações pessoais e palavras comuns.",
+    "O que é autenticação em dois fatores (2FA)?": "2FA é um método de segurança que exige duas formas de identificação para acessar uma conta, geralmente uma senha e um código enviado para o celular.",
+    "O que é um firewall?": "Um firewall é uma barreira de segurança que monitora e controla o tráfego de rede, bloqueando acessos não autorizados.",
+    "O que é um antivírus?": "Um antivírus é um software projetado para detectar, prevenir e remover malware do seu computador.",
+    "O que é um ataque DDoS?": "DDoS (Distributed Denial of Service) é um ataque onde múltiplos sistemas comprometidos são usados para sobrecarregar um alvo, como um site, tornando-o indisponível.",
+    "O que é um VPN?": "VPN (Virtual Private Network) é uma tecnologia que cria uma conexão segura e criptografada entre seu dispositivo e a internet, protegendo sua privacidade online.",
+    "O que é um ataque de força bruta?": "Um ataque de força bruta é uma tentativa de adivinhar senhas ou chaves de criptografia tentando todas as combinações possíveis até encontrar a correta.",
+    "O que é um ataque de engenharia social?": "Um ataque de engenharia social é uma técnica onde o atacante manipula pessoas para obter informações confidenciais ou acesso a sistemas, muitas vezes se passando por alguém confiável."
 }
 
 perguntas_treino = list(conhecimento.keys())
@@ -96,7 +108,6 @@ def logout():
     session.clear()
     return redirect(url_for('login_page'))
 
-# --- ROTAS DO SISTEMA ---
 
 @app.route('/home')
 def index():
@@ -140,7 +151,7 @@ def visualizar_curso(id):
     
     return render_template('course-details.html', curso=curso, nome_usuario=nome_usuario, data_hoje=data_atual)
 
-# --- ROTA DE VALIDAÇÃO DE TESTE (IA) ---
+# rota de validação da resposta do usuário para o teste do curso, usando IA para comparar com a resposta correta do banco
 @app.route('/validar_teste/<int:id>', methods=['POST'])
 def validar_teste(id):
     curso = db.session.get(Curso, id)
@@ -148,9 +159,9 @@ def validar_teste(id):
     resposta_usuario = dados.get("resposta", "").strip()
 
     if not curso or not curso.resposta_correta:
-        return jsonify({"status": "sucesso"}) # Se não houver teste cadastrado, libera
+        return jsonify({"status": "sucesso"}) # se não houver resposta correta cadastrada, aprova automaticamente
 
-    # Inteligência Artificial para comparar resposta do aluno com a do banco
+    #inteligência artificial para comparar a resposta do usuário com a resposta cadastrada no banco de dados, usando TF-IDF e similaridade de cosseno
     textos = [curso.resposta_correta, resposta_usuario]
     vec_ia = TfidfVectorizer()
     try:
@@ -159,7 +170,7 @@ def validar_teste(id):
     except:
         similaridade = 0
 
-    # Se a similaridade for maior que 35%, aprovamos
+    #se a similaridade for maior que 35%, aprova
     if similaridade > 0.35:
         return jsonify({"status": "sucesso"})
     else:
@@ -191,8 +202,8 @@ def criar_curso():
         descricao=request.form.get('descricao'),
         conteudo=request.form.get('conteudo'),
         link=request.form.get('link') or None,
-        pergunta_teste=request.form.get('pergunta_teste'), # Novo
-        resposta_correta=request.form.get('resposta_correta') # Novo
+        pergunta_teste=request.form.get('pergunta_teste'), 
+        resposta_correta=request.form.get('resposta_correta') 
     )
     db.session.add(novo)
     db.session.commit()
@@ -207,8 +218,8 @@ def editar_curso(id):
         curso.descricao = request.form.get('descricao')
         curso.conteudo = request.form.get('conteudo')
         curso.link = request.form.get('link')
-        curso.pergunta_teste = request.form.get('pergunta_teste') # Novo
-        curso.resposta_correta = request.form.get('resposta_correta') # Novo
+        curso.pergunta_teste = request.form.get('pergunta_teste') 
+        curso.resposta_correta = request.form.get('resposta_correta') 
         db.session.commit()
     return redirect(url_for('listar_cursos'))
 

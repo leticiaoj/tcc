@@ -1,17 +1,17 @@
 const chatBody = document.getElementById('chatbot-body');
 const userInput = document.querySelector('.user-input');
 
-// Função principal para enviar mensagem
+//função principal para enviar mensagem
 async function sendMessage() {
     const message = userInput.value.trim();
     if (message === "") return;
 
-    // 1. Mostrar mensagem do usuário
+    //mostrar mensagem do usuário
     addBubble(message, 'user-bubble');
     userInput.value = "";
 
     try {
-        // 2. Enviar para o Flask (main.py)
+        //enviar para o Flask (main.py)
         const response = await fetch('/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -20,10 +20,10 @@ async function sendMessage() {
 
         const data = await response.json();
 
-        // 3. Mostrar resposta do Cybot
+        //mostrar resposta do Cybot
         addBubble(data.response, 'bot-bubble');
 
-        // 4. Se a resposta sugerir opções, podemos criar botões (opcional)
+        //se a resposta sugerir opções, podemos criar botões (opcional)
         if (message.toLowerCase().includes("ajuda") || message.toLowerCase().includes("oi")) {
             showOptions();
         }
@@ -58,7 +58,7 @@ function showOptions() {
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.innerText = opt.label;
-        btn.className = 'option-btn'; // Adicione estilo no seu CSS
+        btn.className = 'option-btn'; 
         btn.onclick = () => {
             userInput.value = opt.value;
             sendMessage();
@@ -71,7 +71,7 @@ function showOptions() {
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-// Evento de tecla Enter
+//evento de tecla enter
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
