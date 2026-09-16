@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Cyber Chase - Meu Perfil</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/assets/logo/png/Favicon.png">
+
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/courses.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/profile.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&family=Racing+Sans+One&family=Roboto+Mono:wght@100&display=swap" rel="stylesheet">
+    <script defer src="/js/navbar.js"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/home"> <img src="/assets/logo/svg/Logo.svg" id="Logo"></a>
+        <div class="mobile-menu">
+            <div class="line1"></div>
+            <div class="line1"></div>
+            <div class="line1"></div>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-links"><a href="/about">Sobre Nós</a></li>
+            <li class="nav-links"><a href="/courses">Cursos</a></li>
+            <li class="nav-links"><a href="/perfil">Meu Perfil</a></li>
+            <li class="nav-links"><a href="/contact">Contato</a></li>
+            <li class="nav-links"><a href="/logout" style="color: #ff4d4d;">Sair</a></li>
+        </ul>
+    </nav>
+
+    <div class="content-wrapper">
+        <main>
+            <h1 class="page-title">Meu Perfil</h1>
+            <p class="profile-welcome">Olá, <strong>{{ nome_usuario }}</strong>! Aqui está o seu progresso na Cyber Chase.</p>
+
+            <!-- CURSOS EM ANDAMENTO -->
+            <section class="profile-section">
+                <h2 class="section-title">📚 Cursos em Andamento</h2>
+
+                {% if em_andamento %}
+                <ul class="course-list profile-course-list">
+                    {% for mat in em_andamento %}
+                    <li class="course-item">
+                        <h2 class="course-title">{{ mat.curso.titulo }}</h2>
+                        <p class="course-description">{{ mat.curso.descricao }}</p>
+                        <p class="profile-meta">Iniciado em {{ mat.data_inicio.strftime('%d/%m/%Y') if mat.data_inicio else '-' }}</p>
+                        <a href="{{ url_for('visualizar_curso', id=mat.curso.id) }}" class="start-button" style="text-decoration: none; display: inline-block; text-align: center;">
+                            Continuar Curso
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="empty-msg">Você ainda não iniciou nenhum curso. <a href="/courses">Veja os cursos disponíveis</a>.</p>
+                {% endif %}
+            </section>
+
+            <!-- CURSOS CONCLUÍDOS -->
+            <section class="profile-section">
+                <h2 class="section-title">🎓 Cursos Concluídos</h2>
+
+                {% if concluidos %}
+                <ul class="course-list profile-course-list">
+                    {% for mat in concluidos %}
+                    <li class="course-item course-item-done">
+                        <h2 class="course-title">{{ mat.curso.titulo }}</h2>
+                        <p class="course-description">{{ mat.curso.descricao }}</p>
+                        <p class="profile-meta">Concluído em {{ mat.data_conclusao.strftime('%d/%m/%Y') if mat.data_conclusao else '-' }}</p>
+                        <button class="start-button btn-ver-certificado" data-curso-id="{{ mat.curso.id }}">
+                            Ver Certificado
+                        </button>
+
+                        <!-- Certificado (oculto até o usuário clicar em "Ver Certificado") -->
+                        <div class="cert-wrapper" id="cert-wrapper-{{ mat.curso.id }}">
+                            <div class="cert-box" id="cert-content-{{ mat.curso.id }}">
+                                <img src="/assets/logo/svg/Logo.svg" style="width: 120px; margin-bottom: 15px;">
+                                <h1 class="cert-title">CERTIFICADO</h1>
+                                <p>Certificamos que</p>
+                                <div class="cert-user">{{ nome_usuario }}</div>
+                                <p>concluiu com êxito o treinamento de</p>
+                                <h2 class="cert-course">{{ mat.curso.titulo }}</h2>
+                                <p>Emitido por <strong>Cyber Chase</strong> em {{ mat.data_conclusao.strftime('%d/%m/%Y') if mat.data_conclusao else '-' }}.</p>
+                            </div>
+                            <button class="btn-print" data-curso-id="{{ mat.curso.id }}">🖨️ Salvar como PDF</button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="empty-msg">Você ainda não concluiu nenhum curso. Termine um curso e gere seu certificado para vê-lo aqui.</p>
+                {% endif %}
+            </section>
+        </main>
+
+        <!-- área usada apenas na hora de imprimir um certificado específico -->
+        <div id="printArea"></div>
+
+        <footer>
+            <div class="footer-content">
+                <p>&#169; 2026 Cyber Chase. Todos os Direitos Reservados.</p>
+                <div class="github-logo">
+                    <a href="https://github.com/orgs/Cyber-Chase/repositories" target="_blank">
+                        <img src="/assets/icon/svg/github_white.svg" alt="GitHub">
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function toggleCertificado(id) {
+            const wrapper = document.getElementById('cert-wrapper-' + id);
+            const aberto = wrapper.style.display === 'block';
+            wrapper.style.display = aberto ? 'none' : 'block';
+            if (!aberto) {
+                wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function imprimirCertificado(id) {
+            const conteudo = document.getElementById('cert-content-' + id).innerHTML;
+            document.getElementById('printArea').innerHTML = conteudo;
+            window.print();
+        }
+
+        document.querySelectorAll('.btn-ver-certificado').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                toggleCertificado(this.dataset.cursoId);
+            });
+        });
+
+        document.querySelectorAll('.btn-print').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                imprimirCertificado(this.dataset.cursoId);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,28 +1,57 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import joinedload
 import os
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
+from dotenv import load_dotenv
 
-#configuracao inicial
+# carrega variaveis do arquivo .env (nao versionado no git)
+load_dotenv()
+
+# configuracao inicial
 base_dir = os.path.dirname(os.path.abspath(__file__))
-app = Flask(__name__, template_folder=base_dir, static_folder=base_dir, static_url_path='')
-app.secret_key = "cyber_chase_secret_key"
+app = Flask(__name__, template_folder=base_dir,
+            static_folder=base_dir, static_url_path='')
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key_troque_em_producao")
 
-#banco de dados em mysql
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@127.0.0.1:3306/cyber_chase'
+# BANCO DE DADOS MYSQL NO AIVEN (NUVEM)
+DB_USER = os.environ.get("DB_USER", "avnadmin")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_HOST = os.environ.get("DB_HOST", "cyber-chase-leticia-340c.j.aivencloud.com")
+DB_PORT = os.environ.get("DB_PORT", "21013")
+DB_NAME = os.environ.get("DB_NAME", "defaultdb")
+
+if not DB_PASSWORD:
+    raise RuntimeError(
+        "DB_PASSWORD não definida. Crie um arquivo .env na raiz do projeto "
+        "com a variável DB_PASSWORD (veja .env.example)."
+    )
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f'mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}'
+    f'@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'connect_args': {
+        'ssl_verify_identity': False
+    }
+}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-#models bd
+# models bd
+
+
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     senha = db.Column(db.String(255), nullable=False)
+
 
 class Curso(db.Model):
     __tablename__ = 'cursos'
@@ -31,8 +60,32 @@ class Curso(db.Model):
     descricao = db.Column(db.Text, nullable=False)
     conteudo = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(900), nullable=True)
-    pergunta_teste = db.Column(db.Text, nullable=True)   
-    resposta_correta = db.Column(db.Text, nullable=True) 
+    pergunta_teste = db.Column(db.Text, nullable=True)
+    resposta_correta = db.Column(db.Text, nullable=True)
+
+# tabela de matricula / progresso
+
+
+class Matricula(db.Model):
+    __tablename__ = 'matriculas'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey(
+        'usuarios.id'), nullable=False)
+    curso_id = db.Column(db.Integer, db.ForeignKey(
+        'cursos.id'), nullable=False)
+    # 'em_andamento' ou 'concluido'
+    status = db.Column(db.String(20), nullable=False, default='em_andamento')
+    data_inicio = db.Column(db.DateTime, default=datetime.utcnow)
+    data_conclusao = db.Column(db.DateTime, nullable=True)
+
+    usuario = db.relationship(
+        'Usuario', backref=db.backref('matriculas', lazy=True))
+    curso = db.relationship(
+        'Curso', backref=db.backref('matriculas', lazy=True))
+
+    __table_args__ = (db.UniqueConstraint(
+        'usuario_id', 'curso_id', name='uq_usuario_curso'),)
+
 
 with app.app_context():
     db.create_all()
@@ -67,9 +120,11 @@ tfidf_matrix = vectorizer.fit_transform(perguntas_treino)
 
 # --- ROTAS DE AUTENTICAÇÃO ---
 
+
 @app.route('/')
 def login_page():
     return render_template('login.html')
+
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
@@ -89,19 +144,27 @@ def registrar():
         flash("Erro ao criar conta.")
     return redirect(url_for('login_page'))
 
+
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form.get('nome')
     senha = request.form.get('senha')
-    if email == "admin@cyberchase.com.br" and senha == "root":
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@cyberchase.com.br")
+    admin_senha = os.environ.get("ADMIN_PASSWORD", "root")
+    if email == admin_email and senha == admin_senha:
         session['usuario_logado'] = "Administrador"
+        # admin não possui registro na tabela usuarios
+        session['usuario_id'] = None
         return redirect(url_for('listar_cursos'))
     usuario = Usuario.query.filter_by(email=email).first()
     if usuario and usuario.senha == senha:
         session['usuario_logado'] = usuario.nome
+        # guarda o id para vincular as matrículas
+        session['usuario_id'] = usuario.id
         return redirect(url_for('index'))
     flash("E-mail ou senha incorretos!")
     return redirect(url_for('login_page'))
+
 
 @app.route('/logout')
 def logout():
@@ -114,6 +177,7 @@ def index():
     if 'usuario_logado' not in session:
         return redirect(url_for('login_page'))
     return render_template('index.html')
+
 
 @app.route('/ask', methods=['POST'])
 def ask_bot():
@@ -130,12 +194,14 @@ def ask_bot():
     resposta = respostas_treino[indice_melhor] if score_confianca > 0.3 else "Ainda estou aprendendo sobre isso."
     return jsonify({"response": resposta})
 
+
 @app.route('/courses')
 def page_courses():
     if 'usuario_logado' not in session:
         return redirect(url_for('login_page'))
     cursos = Curso.query.all()
     return render_template('courses.html', cursos=cursos)
+
 
 @app.route('/course/<int:id>')
 def visualizar_curso(id):
@@ -145,13 +211,88 @@ def visualizar_curso(id):
     if not curso:
         flash("Curso não encontrado.")
         return redirect(url_for('page_courses'))
-    
-    nome_usuario = session.get('usuario_logado')
-    data_atual = datetime.now().strftime('%d/%m/%Y')
-    
-    return render_template('course-details.html', curso=curso, nome_usuario=nome_usuario, data_hoje=data_atual)
 
-# rota de validação da resposta do usuário para o teste do curso, usando IA para comparar com a resposta correta do banco
+    nome_usuario = session.get('usuario_logado')
+    usuario_id = session.get('usuario_id')
+    data_atual = datetime.now().strftime('%d/%m/%Y')
+
+    matricula = None
+    if usuario_id:
+        matricula = Matricula.query.filter_by(
+            usuario_id=usuario_id, curso_id=id).first()
+        if not matricula:
+            matricula = Matricula(usuario_id=usuario_id,
+                                  curso_id=id, status='em_andamento')
+            db.session.add(matricula)
+            db.session.commit()
+
+    ja_concluido = matricula.status == 'concluido' if matricula else False
+    data_conclusao = matricula.data_conclusao.strftime(
+        '%d/%m/%Y') if (matricula and matricula.data_conclusao) else data_atual
+
+    return render_template(
+        'course-details.html',
+        curso=curso,
+        nome_usuario=nome_usuario,
+        data_hoje=data_conclusao,
+        ja_concluido=ja_concluido
+    )
+
+
+@app.route('/curso/<int:id>/concluir', methods=['POST'])
+def concluir_curso(id):
+    if 'usuario_logado' not in session:
+        return jsonify({"status": "erro", "message": "Faça login novamente."}), 401
+
+    usuario_id = session.get('usuario_id')
+    if not usuario_id:
+        return jsonify({"status": "erro", "message": "Administradores não emitem certificado."}), 400
+
+    matricula = Matricula.query.filter_by(
+        usuario_id=usuario_id, curso_id=id).first()
+    if not matricula:
+        matricula = Matricula(usuario_id=usuario_id, curso_id=id)
+        db.session.add(matricula)
+
+    if matricula.status != 'concluido':
+        matricula.status = 'concluido'
+        matricula.data_conclusao = datetime.now()
+        db.session.commit()
+
+    return jsonify({
+        "status": "sucesso",
+        "data_conclusao": matricula.data_conclusao.strftime('%d/%m/%Y')
+    })
+
+# ROTA DO PERFIL COM EAGER LOADING (JOINEDLOAD)
+
+
+@app.route('/perfil')
+def perfil():
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
+
+    usuario_id = session.get('usuario_id')
+    nome_usuario = session.get('usuario_logado')
+
+    if not usuario_id:
+        flash("Administradores não possuem página de perfil.")
+        return redirect(url_for('listar_cursos'))
+
+    # O joinedload previne erros ao carregar mat.curso dentro do Jinja2
+    matriculas = Matricula.query.options(joinedload(
+        Matricula.curso)).filter_by(usuario_id=usuario_id).all()
+    em_andamento = [m for m in matriculas if m.status != 'concluido']
+    concluidos = [m for m in matriculas if m.status == 'concluido']
+
+    return render_template(
+        'perfil.html',
+        nome_usuario=nome_usuario,
+        em_andamento=em_andamento,
+        concluidos=concluidos
+    )
+
+
 @app.route('/validar_teste/<int:id>', methods=['POST'])
 def validar_teste(id):
     curso = db.session.get(Curso, id)
@@ -159,9 +300,8 @@ def validar_teste(id):
     resposta_usuario = dados.get("resposta", "").strip()
 
     if not curso or not curso.resposta_correta:
-        return jsonify({"status": "sucesso"}) # se não houver resposta correta cadastrada, aprova automaticamente
+        return jsonify({"status": "sucesso"})
 
-    #inteligência artificial para comparar a resposta do usuário com a resposta cadastrada no banco de dados, usando TF-IDF e similaridade de cosseno
     textos = [curso.resposta_correta, resposta_usuario]
     vec_ia = TfidfVectorizer()
     try:
@@ -170,67 +310,79 @@ def validar_teste(id):
     except:
         similaridade = 0
 
-    #se a similaridade for maior que 35%, aprova
     if similaridade > 0.35:
         return jsonify({"status": "sucesso"})
     else:
         return jsonify({"status": "erro", "message": "Sua resposta não foi profunda o suficiente ou está incorreta. Tente explicar melhor."})
 
+
 @app.route('/about')
 def page_about():
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     return render_template('about.html')
+
 
 @app.route('/contact')
 def page_contact():
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     return render_template('contact.html')
 
 # --- CRUD ADMIN ---
 
+
 @app.route('/admin/cursos')
 def listar_cursos():
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     cursos = Curso.query.all()
     return render_template('admin-courses.html', cursos=cursos)
 
+
 @app.route('/admin/cursos/novo', methods=['POST'])
 def criar_curso():
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     novo = Curso(
         titulo=request.form.get('titulo'),
         descricao=request.form.get('descricao'),
         conteudo=request.form.get('conteudo'),
         link=request.form.get('link') or None,
-        pergunta_teste=request.form.get('pergunta_teste'), 
-        resposta_correta=request.form.get('resposta_correta') 
+        pergunta_teste=request.form.get('pergunta_teste'),
+        resposta_correta=request.form.get('resposta_correta')
     )
     db.session.add(novo)
     db.session.commit()
     return redirect(url_for('listar_cursos'))
 
+
 @app.route('/admin/cursos/editar/<int:id>', methods=['POST'])
 def editar_curso(id):
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     curso = db.session.get(Curso, id)
     if curso:
         curso.titulo = request.form.get('titulo')
         curso.descricao = request.form.get('descricao')
         curso.conteudo = request.form.get('conteudo')
         curso.link = request.form.get('link')
-        curso.pergunta_teste = request.form.get('pergunta_teste') 
-        curso.resposta_correta = request.form.get('resposta_correta') 
+        curso.pergunta_teste = request.form.get('pergunta_teste')
+        curso.resposta_correta = request.form.get('resposta_correta')
         db.session.commit()
     return redirect(url_for('listar_cursos'))
 
+
 @app.route('/admin/cursos/deletar/<int:id>')
 def deletar_curso(id):
-    if 'usuario_logado' not in session: return redirect(url_for('login_page'))
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login_page'))
     curso = db.session.get(Curso, id)
     if curso:
         db.session.delete(curso)
         db.session.commit()
     return redirect(url_for('listar_cursos'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

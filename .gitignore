@@ -1,0 +1,16 @@
+# variaveis de ambiente / segredos
+.env
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

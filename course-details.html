@@ -54,6 +54,7 @@
         <a href="{{ url_for('index') }}"><img src="/assets/logo/svg/Logo.svg" id="Logo"></a>
         <ul class="nav-links">
             <li><a href="{{ url_for('page_courses') }}">Cursos</a></li>
+            <li><a href="{{ url_for('perfil') }}">Meu Perfil</a></li>
             <li><a href="{{ url_for('logout') }}" style="color: #ff4d4d;">Sair</a></li>
         </ul>
     </nav>
@@ -71,15 +72,19 @@
             </div>
         {% endif %}
 
-        <div class="test-section" id="sessaoTeste">
+        <div class="test-section" id="sessaoTeste" {% if ja_concluido %}style="opacity: 0.6;"{% endif %}>
             <h3>📝 Validação de Conhecimento</h3>
-            <p><strong>Pergunta:</strong> {{ curso.pergunta_teste or "Explique resumidamente o que você aprendeu neste módulo." }}</p>
-            <textarea id="resposta_aluno" placeholder="Escreva sua resposta aqui para liberar o certificado..."></textarea>
-            <button class="btn-action btn-verify" onclick="validarIA()">Enviar para Avaliação da IA</button>
+            {% if ja_concluido %}
+                <p>✅ Você já concluiu este curso e validou seu conhecimento.</p>
+            {% else %}
+                <p><strong>Pergunta:</strong> {{ curso.pergunta_teste or "Explique resumidamente o que você aprendeu neste módulo." }}</p>
+                <textarea id="resposta_aluno" placeholder="Escreva sua resposta aqui para liberar o certificado..."></textarea>
+                <button class="btn-action btn-verify" onclick="validarIA()">Enviar para Avaliação da IA</button>
+            {% endif %}
             <p id="feedback" style="margin-top: 15px; font-weight: bold;"></p>
         </div>
 
-        <button id="btnGerarCertificado" class="btn-action btn-cert" onclick="liberarCertificado()">🎓 Gerar Meu Certificado</button>
+        <button id="btnGerarCertificado" class="btn-action btn-cert" onclick="liberarCertificado()" {% if ja_concluido %}style="display: block;"{% endif %}>🎓 Gerar Meu Certificado</button>
 
         <section id="areaCertificado">
             <div class="cert-box">
@@ -127,8 +132,22 @@
         }
 
         function liberarCertificado() {
-            document.getElementById('areaCertificado').style.display = "block";
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            // registra no backend que o usuário concluiu o curso, para que
+            // ele apareça na página de Perfil como "Concluído" com certificado
+            fetch('/curso/{{ curso.id }}/concluir', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(r => r.json())
+            .then(() => {
+                document.getElementById('areaCertificado').style.display = "block";
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            })
+            .catch(() => {
+                // mesmo se a chamada falhar, ainda mostramos o certificado localmente
+                document.getElementById('areaCertificado').style.display = "block";
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            });
         }
     </script>
 </body>
